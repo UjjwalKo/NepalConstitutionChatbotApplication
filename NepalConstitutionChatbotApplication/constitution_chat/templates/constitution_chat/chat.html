@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nepal Constitution Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8 text-center">Nepal Constitution Chatbot</h1>
+        
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="mb-4">
+                    <textarea id="question" class="w-full p-2 border rounded" rows="3" 
+                             placeholder="Ask a question about Nepal's Constitution..."></textarea>
+                </div>
+                <button onclick="askQuestion()" 
+                        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Ask Question
+                </button>
+            </div>
+
+            <div id="chat-history" class="space-y-4">
+                {% for message in messages %}
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <p class="font-semibold">Q: {{ message.question }}</p>
+                    <p class="mt-2">A: {{ message.answer }}</p>
+                    <p class="text-sm text-gray-500 mt-2">{{ message.timestamp }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function askQuestion() {
+        const question = document.getElementById('question').value;
+        if (!question) return;
+
+        fetch('/ask-question/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ question: question })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const chatHistory = document.getElementById('chat-history');
+            const newChat = document.createElement('div');
+            newChat.className = 'bg-white rounded-lg shadow-md p-4';
+            newChat.innerHTML = `
+                <p class="font-semibold">Q: ${question}</p>
+                <p class="mt-2">A: ${data.answer}</p>
+                <p class="text-sm text-gray-500 mt-2">Just now</p>
+            `;
+            chatHistory.insertBefore(newChat, chatHistory.firstChild);
+            document.getElementById('question').value = '';
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    </script>
+</body>
+</html>
