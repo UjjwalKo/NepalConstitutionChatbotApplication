@@ -1,64 +1,99 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Nepal Constitution Chat</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-8 text-center">Nepal Constitution Chatbot</h1>
-        
-        <div class="max-w-2xl mx-auto">
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div class="mb-4">
-                    <textarea id="question" class="w-full p-2 border rounded" rows="3" 
-                             placeholder="Ask a question about Nepal's Constitution..."></textarea>
-                </div>
-                <button onclick="askQuestion()" 
-                        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                    Ask Question
-                </button>
-            </div>
+{% extends 'constitution_chat/base.html' %}
 
-            <div id="chat-history" class="space-y-4">
-                {% for message in messages %}
-                <div class="bg-white rounded-lg shadow-md p-4">
-                    <p class="font-semibold">Q: {{ message.question }}</p>
-                    <p class="mt-2">A: {{ message.answer }}</p>
-                    <p class="text-sm text-gray-500 mt-2">{{ message.timestamp }}</p>
+{% block content %}
+<div class="flex flex-col md:flex-row space-y-8 md:space-y-0 md:space-x-8" x-data="chatData">
+    <div class="w-full md:w-1/3">
+        <h2 class="text-2xl font-bold mb-4 text-white">Chat History</h2>
+        <div class="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+            {% for chat in chat_history %}
+            <div class="bg-white bg-opacity-90 p-4 rounded-lg shadow-md">
+                <p class="font-bold text-gray-800">Q: {{ chat.question }}</p>
+                <p class="text-gray-600">A: {{ chat.answer|truncatechars:100 }}</p>
+                <div class="flex justify-end mt-2">
+                    <a href="{% url 'delete_history' chat.id %}" class="text-red-500 hover:text-red-700">Delete</a>
                 </div>
-                {% endfor %}
             </div>
+            {% endfor %}
         </div>
     </div>
+    <div class="w-full md:w-2/3">
+        <div id="chat-container" class="bg-white bg-opacity-90 p-6 rounded-lg shadow-md mb-4 h-[calc(100vh-300px)] overflow-y-auto">
+            <div class="mb-4 text-center">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome to the Nepal Constitution Chatbot</h2>
+                <p class="text-gray-600 mb-4">I'm here to answer your questions about the Constitution of Nepal. Feel free to ask anything related to the constitution!</p>
+                <div class="text-left">
+                    <p class="text-gray-700 font-semibold mb-2">Here are some example questions you can ask:</p>
+                    <ul class="list-disc list-inside text-gray-600">
+                        <li>What are the fundamental rights guaranteed by Nepal's constitution?</li>
+                        <li>How is the government structured according to the constitution?</li>
+                        <li>What is the process for amending the constitution?</li>
+                        <li>Can you explain the role of the President in Nepal's government?</li>
+                    </ul>
+                </div>
+            </div>
+            <template x-for="message in messages" :key="message.id">
+                <div :class="{'mb-4 text-right': message.sender === 'user', 'mb-4 text-left': message.sender === 'bot'}">
+                    <span :class="{'inline-block px-4 py-2 rounded bg-blue-500 text-white': message.sender === 'user', 'inline-block px-4 py-2 rounded bg-gray-200 text-gray-800': message.sender === 'bot'}" x-text="message.content"></span>
+                </div>
+            </template>
+        </div>
+        <form id="chat-form" class="flex" @submit.prevent="submitQuestion">
+            {% csrf_token %}
+            <input type="text" x-model="question" class="flex-grow border rounded-l px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ask about Nepal's constitution...">
+            <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-r hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" x-bind:disabled="loading || !question.trim()" x-bind:class="{ 'opacity-50 cursor-not-allowed': loading || !question.trim() }">
+                <span x-show="!loading">Send</span>
+                <span x-show="loading" class="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></span>
+            </button>
+        </form>
+    </div>
+</div>
 
-    <script>
-    function askQuestion() {
-        const question = document.getElementById('question').value;
-        if (!question) return;
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('chatData', () => ({
+        question: '',
+        loading: false,
+        messages: [],
+        submitQuestion() {
+            if (this.loading || !this.question.trim()) return;
 
-        fetch('/ask-question/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ question: question })
-        })
-        .then(response => response.json())
-        .then(data => {
-            const chatHistory = document.getElementById('chat-history');
-            const newChat = document.createElement('div');
-            newChat.className = 'bg-white rounded-lg shadow-md p-4';
-            newChat.innerHTML = `
-                <p class="font-semibold">Q: ${question}</p>
-                <p class="mt-2">A: ${data.answer}</p>
-                <p class="text-sm text-gray-500 mt-2">Just now</p>
-            `;
-            chatHistory.insertBefore(newChat, chatHistory.firstChild);
-            document.getElementById('question').value = '';
-        })
-        .catch(error => console.error('Error:', error));
-    }
-    </script>
-</body>
-</html>
+            this.loading = true;
+            this.messages.push({ id: Date.now(), sender: 'user', content: this.question });
+
+            fetch('{% url "chat" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ question: this.question })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                this.messages.push({ id: Date.now(), sender: 'bot', content: data.answer });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.messages.push({ id: Date.now(), sender: 'bot', content: 'An error occurred. Please try again.' });
+            })
+            .finally(() => {
+                this.loading = false;
+                this.question = '';
+                this.$nextTick(() => {
+                    const chatContainer = document.getElementById('chat-container');
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                });
+            });
+        }
+    }));
+});
+</script>
+{% endblock %}

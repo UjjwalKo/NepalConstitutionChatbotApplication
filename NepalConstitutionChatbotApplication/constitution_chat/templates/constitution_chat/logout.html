@@ -1,0 +1,14 @@
+{% extends 'constitution_chat/base.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Logged Out</h2>
+    <p class="text-center text-gray-600 mb-6">You have been successfully logged out.</p>
+    <div class="text-center">
+        <a href="{% url 'login' %}" class="inline-block bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Login Again
+        </a>
+    </div>
+</div>
+{% endblock %}
+
