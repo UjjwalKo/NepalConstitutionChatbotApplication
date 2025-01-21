@@ -4,6 +4,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.core.mail import send_mail
+from django.contrib import messages
 from django.conf import settings
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -21,16 +22,12 @@ def chat_view(request):
             data = json.loads(request.body)
             question = data.get('question')
             answer = ask_question(question)
-            
-            # Save to chat history
             ChatHistory.objects.create(user=request.user, question=question, answer=answer)
-            
             return JsonResponse({'answer': answer})
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
-    
     chat_history = ChatHistory.objects.filter(user=request.user).order_by('-timestamp')
     return render(request, 'constitution_chat/chat.html', {'chat_history': chat_history})
 
@@ -44,47 +41,45 @@ def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            UserProfile.objects.create(user=user)
-            login(request, user)
-            return redirect('chat')
+            try:
+                user = form.save()
+                UserProfile.objects.create(user=user)
+                login(request, user)
+                return redirect('chat')
+            except Exception as e:
+                messages.error(request, f"An error occurred: {e}")
+                return redirect('register')
+        else:
+            messages.error(request, "Form validation failed. Please correct the errors below.")
     else:
         form = RegistrationForm()
     return render(request, 'constitution_chat/register.html', {'form': form})
 
 def forgot_password(request):
     if request.method == 'POST':
-        form = PasswordResetRequestForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            try:
-                user = User.objects.get(email=email)
-                token = PasswordResetToken.objects.create(user=user)
-                send_password_reset_email(user, token)
-                return render(request, 'constitution_chat/password_reset_sent.html')
-            except User.DoesNotExist:
-                form.add_error('email', 'No user found with this email address.')
-    else:
-        form = PasswordResetRequestForm()
-    return render(request, 'constitution_chat/forgot_password.html', {'form': form})
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+            return redirect('reset_password', email=email)
+        except User.DoesNotExist:
+            return render(request, 'constitution_chat/forgot_password.html', {
+                'error': 'No user found with this email address.',
+            })
+    return render(request, 'constitution_chat/forgot_password.html')
 
-def reset_password(request, token):
-    reset_token = get_object_or_404(PasswordResetToken, token=token)
-    if not reset_token.is_valid():
-        return render(request, 'constitution_chat/password_reset_invalid.html')
-
+def reset_password(request, email):
+    user = get_object_or_404(User, email=email)
     if request.method == 'POST':
-        form = PasswordResetForm(request.POST)
-        if form.is_valid():
-            user = reset_token.user
-            user.set_password(form.cleaned_data['new_password'])
-            user.save()
-            reset_token.used = True
-            reset_token.save()
-            return redirect('login')
-    else:
-        form = PasswordResetForm()
-    return render(request, 'constitution_chat/reset_password.html', {'form': form})
+        password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        if password != confirm_password:
+            return render(request, 'constitution_chat/reset_password.html', {
+                'error': 'Passwords do not match.',
+                'email': email,})
+        user.set_password(password)
+        user.save()
+        return redirect('login')  
+    return render(request, 'constitution_chat/reset_password.html', {'email': email})
 
 def send_password_reset_email(user, token):
     subject = 'Password Reset for Nepal Constitution Chatbot'

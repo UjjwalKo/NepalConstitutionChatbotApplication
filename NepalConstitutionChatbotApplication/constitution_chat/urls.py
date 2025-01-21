@@ -10,5 +10,5 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page=reverse_lazy('login')), name='logout'),
     path('register/', views.register, name='register'),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
-    path('reset-password/<uuid:token>/', views.reset_password, name='reset_password'),
+    path('reset-password/<str:email>/', views.reset_password, name='reset_password'),
 ]
