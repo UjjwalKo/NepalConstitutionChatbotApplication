@@ -1,18 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from django.core.mail import send_mail
 from django.contrib import messages
 from django.conf import settings
-from django.utils import timezone
 from django.views.decorators.http import require_http_methods
-from .models import ChatHistory, UserProfile, PasswordResetToken
+from .models import ChatHistory, UserProfile
 from .chatbot import ask_question
-from .forms import RegistrationForm, PasswordResetRequestForm, PasswordResetForm
+from .forms import RegistrationForm
 import json
-import uuid
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -80,8 +77,3 @@ def reset_password(request, email):
         user.save()
         return redirect('login')  
     return render(request, 'constitution_chat/reset_password.html', {'email': email})
-
-def send_password_reset_email(user, token):
-    subject = 'Password Reset for Nepal Constitution Chatbot'
-    message = f'Click the link to reset your password: {settings.SITE_URL}/reset-password/{token.token}/'
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
