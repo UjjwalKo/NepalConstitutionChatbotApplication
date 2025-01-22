@@ -1,51 +1,107 @@
 {% extends 'constitution_chat/base.html' %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg" x-data="{ username: '', email: '', password1: '', password2: '' }">
-    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Register</h2>
-    {% if messages %}
-<div class="alert alert-danger">
-    {% for message in messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-</div>
-{% endif %}
+<div class="min-h-[80vh] flex items-center justify-center px-4">
+    <div class="w-full max-w-md relative">
+        <div class="absolute -top-12 -left-12 w-24 h-24 bg-gradient-to-br from-indigo-800 to-indigo-600 rounded-full blur-xl opacity-60"></div>
+        <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-gradient-to-br from-indigo-700 to-indigo-500 rounded-full blur-xl opacity-60"></div>
+        <div class="relative backdrop-blur-sm bg-gradient-to-br from-gray-900/90 to-gray-800/90 p-8 rounded-2xl shadow-2xl border border-gray-700"
+             x-data="{ username: '', email: '', password1: '', password2: '' }">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-gray-100">Create an Account</h2>
+                <p class="text-gray-400 mt-2">Join us and get started</p>
+            </div>
+            {% if messages %}
+            <div class="bg-red-500/20 text-red-300 text-sm rounded-lg p-4 mb-6">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
 
-{% if form.errors %}
-<div class="alert alert-danger">
-    <ul>
-        {% for field, errors in form.errors.items %}
-            <li>{{ field }}: {{ errors|join:", " }}</li>
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
-    <form method="post" class="space-y-6">
-        {% csrf_token %}
-        <div>
-            <label for="id_username" class="block text-sm font-medium text-gray-700">Username</label>
-            <input type="text" name="username" id="id_username" x-model="username" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            {% if form.errors %}
+            <div class="bg-red-500/20 text-red-300 text-sm rounded-lg p-4 mb-6">
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                        <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                <div class="space-y-2">
+                    <label for="id_username" class="block text-sm font-medium text-gray-300">Username</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        <input type="text" 
+                               name="username" 
+                               id="id_username" 
+                               x-model="username" 
+                               required 
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-600 rounded-lg bg-gray-800/50 text-black placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label for="id_email" class="block text-sm font-medium text-gray-300">Email</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H8m0 0l4 4m-4-4l4-4m12 8v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4m16 0l-4-4m4 4l-4 4" />
+                            </svg>
+                        </div>
+                        <input type="email" 
+                               name="email" 
+                               id="id_email" 
+                               x-model="email" 
+                               required 
+                               class="block w-full pl-10 pr-3 py-2 border border-gray-600 rounded-lg bg-gray-800/50 text-black placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label for="id_password1" class="block text-sm font-medium text-gray-300">Password</label>
+                    <div class="relative">
+                        <input type="password" 
+                               name="password1" 
+                               id="id_password1" 
+                               x-model="password1" 
+                               required 
+                               class="block w-full pl-3 pr-3 py-2 border border-gray-600 rounded-lg bg-gray-800/50 text-black placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label for="id_password2" class="block text-sm font-medium text-gray-300">Confirm Password</label>
+                    <div class="relative">
+                        <input type="password" 
+                               name="password2" 
+                               id="id_password2" 
+                               x-model="password2" 
+                               required 
+                               class="block w-full pl-3 pr-3 py-2 border border-gray-600 rounded-lg bg-gray-800/50 text-black placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    </div>
+                </div>
+                <div>
+                    <button type="submit" 
+                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gradient-to-r from-indigo-700 to-indigo-600 hover:from-indigo-600 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                            x-bind:disabled="!username || !email || !password1 || !password2 || password1 !== password2">
+                        Register
+                    </button>
+                </div>
+            </form>
+            <div class="mt-6 flex flex-col space-y-4">
+                <p class="text-sm text-center text-gray-400">
+                    Already have an account? 
+                    <a href="{% url 'login' %}" 
+                       class="font-medium text-indigo-300 hover:text-white transition-colors duration-200">
+                        Login here
+                    </a>
+                </p>
+            </div>
         </div>
-        <div>
-            <label for="id_email" class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" name="email" id="id_email" x-model="email" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-        </div>
-        <div>
-            <label for="id_password1" class="block text-sm font-medium text-gray-700">Password</label>
-            <input type="password" name="password1" id="id_password1" x-model="password1" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-        </div>
-        <div>
-            <label for="id_password2" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-            <input type="password" name="password2" id="id_password2" x-model="password2" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-        </div>
-        <div>
-            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" x-bind:disabled="!username || !email || !password1 || !password2 || password1 !== password2" x-bind:class="{ 'opacity-50 cursor-not-allowed': !username || !email || !password1 || !password2 || password1 !== password2 }">
-                Register
-            </button>
-        </div>
-    </form>
-    <div class="mt-4 text-center">
-        <p class="text-sm text-gray-600">Already have an account? <a href="{% url 'login' %}" class="font-medium text-indigo-600 hover:text-indigo-500">Login here</a></p>
     </div>
 </div>
 {% endblock %}

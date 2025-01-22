@@ -39,7 +39,7 @@
         </div>
         <form id="chat-form" class="flex" @submit.prevent="submitQuestion">
             {% csrf_token %}
-            <input type="text" x-model="question" class="flex-grow border rounded-l px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ask about Nepal's constitution...">
+            <input type="text" x-model="question" class="flex-grow border rounded-l px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ask about Nepal's constitution..." style="color: black;">
             <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-r hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" x-bind:disabled="loading || !question.trim()" x-bind:class="{ 'opacity-50 cursor-not-allowed': loading || !question.trim() }">
                 <span x-show="!loading">Send</span>
                 <span x-show="loading" class="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></span>

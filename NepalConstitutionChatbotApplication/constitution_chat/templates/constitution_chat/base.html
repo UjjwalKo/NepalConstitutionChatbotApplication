@@ -7,43 +7,134 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
-        @keyframes gradient {
-            0% {background-position: 0% 50%;}
-            50% {background-position: 100% 50%;}
-            100% {background-position: 0% 50%;}
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
-        .bg-gradient-animate {
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
+        
+        .bg-dark-mesh {
+            background: linear-gradient(to bottom right, #1a1a1a, #2d2d2d, #404040);
+            background-attachment: fixed;
+        }
+
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #9ca3af;
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
         }
     </style>
 </head>
-<body class="bg-gradient-animate min-h-screen">
-    <nav class="bg-white bg-opacity-90 shadow-lg">
-        <div class="container mx-auto px-6 py-3 md:flex md:justify-between md:items-center">
-            <div class="flex justify-between items-center">
-                <div>
-                    <a href="{% url 'chat' %}" class="text-gray-800 text-xl font-bold md:text-2xl hover:text-gray-700">Nepal Constitution Chatbot</a>
-                </div>
-            </div>
-            <div class="md:flex items-center">
-                <div class="flex flex-col md:flex-row md:mx-6">
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'chat' %}" class="my-1 text-sm text-gray-700 font-medium hover:text-indigo-500 md:mx-4 md:my-0">Chat</a>
-                        <form method="post" action="{% url 'logout' %}" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="my-1 text-sm text-gray-700 font-medium hover:text-indigo-500 md:mx-4 md:my-0">Logout</button>
-                        </form>
-                    {% else %}
-                        <a href="{% url 'login' %}" class="my-1 text-sm text-gray-700 font-medium hover:text-indigo-500 md:mx-4 md:my-0">Login</a>
-                        <a href="{% url 'register' %}" class="my-1 text-sm text-gray-700 font-medium hover:text-indigo-500 md:mx-4 md:my-0">Register</a>
-                    {% endif %}
+<body class="bg-dark-mesh min-h-screen text-gray-200">
+    <nav class="fixed w-full z-50 top-0">
+        <div class="glass-effect bg-gray-900 bg-opacity-40">
+            <div class="container mx-auto px-6 py-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-10 h-10 bg-gray-800 rounded-lg shadow-lg flex items-center justify-center float-animation border border-gray-700">
+                            <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+                        <a href="{% url 'chat' %}" class="text-gray-200 text-xl font-bold tracking-wider hover:text-white transition duration-300">
+                            Nepal Constitution
+                        </a>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-8">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'chat' %}" class="nav-link text-gray-300 hover:text-white transition duration-300">Chat</a>
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center text-gray-300 hover:text-white focus:outline-none">
+                                    <span class="mr-2">{{ user.username }}</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 py-2 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-700">
+                                    <form method="post" action="{% url 'logout' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white w-full text-left">
+                                            Logout
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% else %}
+                            <a href="{% url 'login' %}" class="px-6 py-2 text-gray-300 hover:text-white nav-link">Login</a>
+                            <a href="{% url 'register' %}" class="px-6 py-2 bg-gray-800 text-gray-200 rounded-lg hover:bg-gray-700 transition duration-300 shadow-lg hover:shadow-xl border border-gray-700">
+                                Register
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="md:hidden" x-data="{ open: false }">
+                        <button @click="open = !open" class="text-gray-300 hover:text-white focus:outline-none">
+                            <svg x-show="!open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                            <svg x-show="open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <div x-show="open" class="absolute top-full left-0 right-0 bg-gray-800 shadow-lg mt-2 py-2 border-t border-gray-700">
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'chat' %}" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white">Chat</a>
+                                <form method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white w-full text-left">
+                                        Logout
+                                    </button>
+                                </form>
+                            {% else %}
+                                <a href="{% url 'login' %}" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white">Login</a>
+                                <a href="{% url 'register' %}" class="block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white">Register</a>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
-    <div class="container mx-auto mt-8 px-4">
+    <div class="container mx-auto px-4 pt-24">
         {% block content %}
         {% endblock %}
     </div>
